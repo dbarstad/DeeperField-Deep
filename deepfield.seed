@@ -1,0 +1,20 @@
+d-i preseed/include string includes/disk_detect.cfg includes/partman.cfg includes/generic_settings.cfg includes/grub.cfg includes/network.cfg includes/users.cfg includes/packages.cfg includes/end_install.cfg
+
+#
+# this bashism figures out if we have efi or bios, sets a soft link
+# in /tmp to it and we will partition from that layout
+#
+d-i preseed/run string efi-test.sh
+d-i partman/early_command string sh /cdrom/preseed/disk-setup.sh
+
+#
+# notice!  /tmp/deepfield-layout.seed is set by efi-test.sh
+#
+d-i partman-auto/expert_recipe_file string /tmp/deepfield-layout.seed 
+d-i partman-auto/choose_recipe select deepfield
+
+d-i preseed/late_command string \
+           cp /cdrom/preseed/T3/Deep_Init.sh /target ; \
+           chmod +x /target/Deep_Init.sh ; \
+           in-target /Deep_Init.sh ; \
+           rm /target/Deep_Init.sh
