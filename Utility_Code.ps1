@@ -2,7 +2,14 @@
 
 Reset-HPEiLO -Connection $iLOHandle -Device iLO -Force -ResetType ForceRestart
 
-Reset-HPEiLO -Connection $iLOHandle -Device iLO -Confirm -Force -ResetType ForceRestart
+Reset-HPEiLO -Connection $iLOHandle -Device iLO -Force -ResetType ForceRestart
 
-Reset-HPEiLO -Connection $iLOHandle -Device Server -Confirm -Force -ResetType ForceRestart
+Reset-HPEiLO -Connection $iLOHandle -Device Server -Force -ResetType ForceRestart
 
+Set-HPEiLOServerPower -Connection v -Power ColdBoot
+
+Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device CD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
+
+Dismount-HPEiLOVirtualMedia -Connection $iLOConnection -Device CD
+
+http://10.177.250.84/Nokia_Deep/Deep_Init.sh
