@@ -30,7 +30,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
     If ($D_Host.hostname.StartsWith("ILO")) {
         Write-Host "Found HPE host $($D_Host.hostname) on IP $($D_Host.IP)"
 
-        $Def_iLO_Pass = Read-Host "Please enter the systems default iLO Administrator password for $($D_Host.hostname) or hit enter to skip this iLO (8 alpha numeric characters): "
+        $Def_iLO_Pass = Read-Host "Please enter the systems default iLO Administrator password for $($D_Host.hostname) or hit enter to skip this iLO (8 alpha numeric characters)"
         If (( $Def_iLO_Pass -eq "" ) -and ( $D_Host.hostname -ne "ILO2M20340CLG" )) {
             Write-Host "Skipping $($D_Host.hostname)"
         }
@@ -86,7 +86,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     $iLOHostName = "NCE-DFCI-01-ILO" + $SerialNumber
 
-                    # Set-HPEiLOLicense -Connection $iLOHandle -Key "332N6-VJMMM-MHTPD-L7XNR-29G8B"
+                    Set-HPEiLOLicense -Connection $iLOConnection -Key "332N6-VJMMM-MHTPD-L7XNR-29G8B"
 
                     Write-Host "Creating iLO users on $($SerialNumber)."
                     Add-HPEiLOUser -Connection $iLOConnection -LoginName adminilo -Password $iLO_adminilo_pw -Username adminilo -HostBIOSConfigPrivilege Yes -HostNICConfigPrivilege Yes -HostStorageConfigPrivilege Yes -iLOConfigPrivilege Yes -LoginPrivilege Yes  -RemoteConsolePrivilege Yes -SystemRecoveryConfigPrivilege Yes -UserConfigPrivilege Yes -VirtualMediaPrivilege Yes -VirtualPowerAndResetPrivilege Yes
@@ -101,15 +101,17 @@ ForEach ($D_Host in $DHCP_Hosts) {
                     Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier iLOHostname
                     
                     Write-Host "Configuring mail alerting on $($SerialNumber)."
-                    Set-HPEiLOAlertMailSetting -AlertMailEmail DL-OSS-Cont-Integ-Eng@charter.com -AlertMailEnabled Yes -AlertMailSenderDomain charter.com -AlertMailSMTPServer nce.mail.chartercom.com -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
+                    Set-HPEiLOAlertMailSetting -AlertMailEmail "DL-OSS-Cont-Integ-Eng@charter.com" -AlertMailEnabled Yes -AlertMailSenderDomain "charter.com" -AlertMailSMTPServer "nce.mail.chartercom.com" -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
 
                     Write-Host "Configuring iLO IPv6 on $($SerialNumber)."
-                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype -DomainName $iloDomain
+                    Start-Sleep 9000
+
+                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
                     
                     Write-Host "Configuring iLO IPv4 on $($SerialNumber)."
                     Set-HPEiLOIPv4NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv4Enabled No -DNSName $iLOHostName -DNSServer $dnsserver -DNSServerType $dnstype -DomainName $iLODomain -LinkSpeedMbps Automatic
 
-                    Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart
+                    Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
                     Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 3 minutes for iLO reset."
                     Start-Sleep 180
@@ -125,6 +127,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
                         $DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
 
                         $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation "Slot 0" -LogicalDriveName LogicalDrive1 -Raid Raid10 -CapacityGiB -1 -DataDrive $DataDriveVAR
+                        $OSresult
 
                     } else {
                         Write-Host "Failed to connect to $($D_Host.hostname) for arry configuration."
@@ -136,18 +139,36 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     If ( $BIOSConnection -ne $null ) {
 
-                        Write-Host "$($SerialNumber) connected for SmartArray configuration."  
-                        Set-HPEiLOVirtualMediaStatus -Connection $iLOConnection -Device CD -VMBootOption BootOnNextReset
-                        Set-HPEiLOOneTimeBootOption -Connection $iLOConnection -BootSourceOverrideEnable Once -BootSourceOverrideTarget DVD 
-                        Set-HPEBIOSWorkloadProfile -Connection $BIOSHandle -WorkloadProfile GeneralPowerEfficientCompute
+                        Write-Host "$($SerialNumber) connected for BIOS configuration."
+                        Set-HPEiLOServerPower -Connection $iLOConnection -Power GracefulShutdown -Force
+                        Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
+                        #Set-HPEiLOVirtualMediaStatus -Connection $iLOConnection -Device CD -VMBootOption BootOnNextReset
+                        Set-HPEiLOOneTimeBootOption -Connection $iLOConnection -BootSourceOverrideEnable Once -BootSourceOverrideTarget CD
+                        Set-HPEBIOSWorkloadProfile -Connection $BIOSConnection -WorkloadProfile GeneralPowerEfficientCompute
+
+                        Set-HPEiLOServerPower -Connection $iLOConnection -Power On -Force
+                        Write-Host "$($SerialNumber) waiting for BIOS workload profile configuration."
+                        $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
+                        $PostWait = 1
+                        Do {
+                            If ($PostWait -eq 10) {
+                                Write-Host "Server $($D_Host.hostname) boot time excessive.  Failing install.  Review system $($D_Host.hostname). - Final POST before ISO mount."
+                                break
+                            }
+                            Start-Sleep -s 60
+                            Write-Host "Waiting for server $($D_Host.hostname) to finish post. "
+                            $PostWait = $PostWait + 1
+                            } While (( $Post.PostState -ne "FinishedPost" ) -and ( $Post.PostState -ne "InPostDiscoveryComplete" ))
+                            Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
+                            Set-HPEiLOServerPower -Connection $iLOConnection -Power Reset -Force
                     } else {
                         Write_Host "Connection to $($D_Host.hostname) failed."
                     }
                     
                     $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
 
-                    Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
-                    Reset-HPEiLO -Connection $iLOConnection -Device Server -Force -ResetType ForceRestart
+                    
+                    Reset-HPEiLO -Connection $iLOConnection -Device Server -Force -ResetType ForceRestart -Confirm:$false
                 }
             }
         }

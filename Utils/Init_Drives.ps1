@@ -76,7 +76,7 @@ Write-Host Resetting server with new Logical Drives
 		Reset-HPEiLO -Connection $iLOConnection -Device Server -Confirm:$false
 	}
 
-Write-Host Configuration complete.  Closing connections.
+Write-Host "Configuration complete.  Closing connections."
 	Disconnect-HPEiLO -Connection $iLOConnection
 	Disconnect-HPESA -Connection $SAConnection
 Write-Host End of Script

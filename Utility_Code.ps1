@@ -24,3 +24,16 @@ http://10.177.250.84/Nokia_Deep/Deep_Init.sh
         #$PhysDriveNum = $PhysDriveNum + 1
         #}
         #while ($APPresult -eq $true)
+
+
+        Reset-HPEiLOSystemManufacturingDefault -Connection $iLOConnection -Force -OutputType RawResponse
+
+        For Device option 'Both' - $connection | Set-HPEiLOServerPower -Power AuxCycle
+        For Device option 'Server' - $connection | Set-HPEiLOServerPower -Power ColdBoot
+
+
+
+
+        Reset-HPESAController -Connection $SAConnection -ControllerLocation "Slot 0" -FactoryReset
+        Reset-HPEiLOSystemManufacturingDefault -Connection $iLOConnection -Confirm:$false -Force
+        Set-HPEiLOFactoryDefault -Connection $iLOConnection -Confirm:$false
