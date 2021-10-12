@@ -1,0 +1,68 @@
+wget http://10.177.250.84/Nokia_Deep/sshpass
+chmod 777 sshpass
+wget http://10.177.250.84/Nokia_Deep/ssa.deb
+wget http://10.177.250.84/Nokia_Deep/hpePublicKey2048_key1.pub
+wget http://10.177.250.84/Nokia_Deep/hpPublicKey1024.pub
+wget http://10.177.250.84/Nokia_Deep/hpPublicKey2048_key1.pub
+wget http://10.177.250.84/Nokia_Deep/hpPublicKey2048.pub
+apt-key add hpePublicKey2048_key1.pub
+apt-key add hpPublicKey1024.pub
+apt-key add hpPublicKey2048.pub
+apt-key add hpPublicKey2048_key1.pub
+dpkg -i ssa.deb
+
+
+
+=> ctrl all show
+
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)  (sn: PEYHD0DRHD40Y2)
+
+=> ctrl slot=0 pd all show
+
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)
+
+   Array A
+
+      physicaldrive 1I:3:1 (port 1I:box 3:bay 1, SATA SSD, 480 GB, OK)
+      physicaldrive 1I:3:2 (port 1I:box 3:bay 2, SATA SSD, 480 GB, OK)
+      physicaldrive 1I:3:3 (port 1I:box 3:bay 3, SATA SSD, 480 GB, OK)
+      physicaldrive 1I:3:4 (port 1I:box 3:bay 4, SATA SSD, 480 GB, OK)
+      physicaldrive 2I:3:5 (port 2I:box 3:bay 5, SATA SSD, 480 GB, OK)
+      physicaldrive 2I:3:6 (port 2I:box 3:bay 6, SATA SSD, 480 GB, OK)
+
+   Unassigned
+
+      physicaldrive 2I:3:7 (port 2I:box 3:bay 7, SATA SSD, 480 GB, OK)
+      physicaldrive 2I:3:8 (port 2I:box 3:bay 8, SATA SSD, 480 GB, OK)
+
+=> ctrl slot=0 create type=arrayr0 drives=2I:3:7
+
+Warning: One or more selected drives are currently exposed to the OS. This
+         action will cause the physical drive(s) to be removed from the
+         operating system. Continue? (y/n)y
+
+=> ctrl slot=0 create type=arrayr0 drives=2I:3:8
+
+Warning: One or more selected drives are currently exposed to the OS. This
+         action will cause the physical drive(s) to be removed from the
+         operating system. Continue? (y/n)y
+
+=> ctrl all show
+
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)  (sn: PEYHD0DRHD40Y2)
+
+=> ctrl slot=0 ld all show
+
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)
+
+   Array A
+
+      logicaldrive 1 (1.31 TB, RAID 1+0, OK)
+
+   Array B
+
+      logicaldrive 2 (447.10 GB, RAID 0, OK)
+
+   Array C
+
+      logicaldrive 3 (447.10 GB, RAID 0, OK)

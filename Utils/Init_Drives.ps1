@@ -4,10 +4,6 @@ import-module HpeIloCmdlets
 $SAConnection = Connect-HPESA -IP 10.177.250.183 -Password X6T8YRY5 -Username administrator -DisableCertificateAuthentication
 $iLOConnection= Connect-HPEiLO -Address 10.177.250.183 -Password X6T8YRY5 -Username administrator -DisableCertificateAuthentication
 
-
-
-
-
 # Remove existing drives
 Write-Host Setting server to correct power state
 	$HostPower= Get-HPEiLoServerPower -Connection $iLOConnection
@@ -26,9 +22,10 @@ Write-Host Collecting existing array config
 	$SlotNumber= $ControllerConfiguration.ConfigurationStatus.ControllerLocation
 	$LogicalDrive= Get-HPESALogicalDrive -Connection $SAConnection
 	$RemoveLogicalDrives= $LogicalDrive.LogicalDrive.VolumeUniqueIdentifier
+
+    Write-Host Removing $RemoveLogicalDrives
 	ForEach ($RemoveLogicalDrive in $RemoveLogicalDrives)
-	{
-        Write-Host Removing $RemoveLogicalDrives
+	{    
 		Remove-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -VolumeUniqueIdentifier $RemoveLogicalDrive
 	}
 Write-Host Resetting power to remove HPSSA config
@@ -59,11 +56,13 @@ Write-Host Creating new drives
 	$Drive6= $PhysicalDrivesSorted[6]
 	$Drive7= $PhysicalDrivesSorted[7]
 Write-Host Creating OS
-	New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -LogicalDriveName LogicalDrive1 -Raid Raid10 -DataDrive @(,@("$Drive0","$Drive1","$Drive2","$Drive3","$Drive4","$Drive5")) -CapacityGiB -1
-Write-Host Creating R0-1
-	New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -LogicalDriveName LogicalDrive2 -Raid Raid0 -DataDrive @(,@("$Drive6")) -CapacityGiB -1
-Write-Host Creating R0-2
-    New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -LogicalDriveName LogicalDrive3 -Raid Raid0 -DataDrive @(,@("$Drive7")) -CapacityGiB -1
+#	New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -LogicalDriveName LogicalDrive1 -Raid Raid10 -DataDrive @(,@("$Drive0","$Drive1","$Drive2","$Drive3","$Drive4","$Drive5")) -SpareDrive @(,@("$Drive6","$Drive7")) -CapacityGiB -1
+New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -DataDrive @(,@("$Drive0","$Drive1","$Drive2","$Drive3","$Drive4","$Drive5")) -Raid Raid10 -CapacityGiB -1 -LegacyBootPriority Primary -LogicalDriveName LogicalDrive1 -SpareDrive @(,@("$Drive6","$Drive7")) -SpareRebuildMode Roaming
+
+
+#Write-Host Creating R0-1
+#	New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -LogicalDriveName LogicalDrive2 -Raid Raid0 -DataDrive @(,@("$Drive6","$Drive7")) -CapacityGiB -1
+
 
 Write-Host Resetting server with new Logical Drives
 	$HostPower= Get-HPEiLoServerPower -Connection $iLOConnection

@@ -104,8 +104,6 @@ ForEach ($D_Host in $DHCP_Hosts) {
                     Set-HPEiLOAlertMailSetting -AlertMailEmail "DL-OSS-Cont-Integ-Eng@charter.com" -AlertMailEnabled Yes -AlertMailSenderDomain "charter.com" -AlertMailSMTPServer "nce.mail.chartercom.com" -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
 
                     Write-Host "Configuring iLO IPv6 on $($SerialNumber)."
-                    Start-Sleep 9000
-
                     Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
                     
                     Write-Host "Configuring iLO IPv4 on $($SerialNumber)."
@@ -122,12 +120,21 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     If ( $SAConnection -ne $null ) {
 
+                    $PhysicalDrives= Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber
+	                $PhysicalDrivesSorted= $PhysicalDrives.PhysicalDrive.Location | Sort-Object
+                    
+                    $DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
+                    If ($PhysicalDrivesSorted.Count -eq 8) {
+                        $SpareDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(6).Location, $Physdrives.PhysicalDrive.Item(7).Location))
+                    } else {
+                        $SpareDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(6).Location, $Physdrives.PhysicalDrive.Item(7).Location, $Physdrives.PhysicalDrive.Item(8).Location, $Physdrives.PhysicalDrive.Item(9).Location, $Physdrives.PhysicalDrive.Item(10).Location, $Physdrives.PhysicalDrive.Item(11).Location, $Physdrives.PhysicalDrive.Item(12).Location, $Physdrives.PhysicalDrive.Item(13).Location, $Physdrives.PhysicalDrive.Item(14).Location, $Physdrives.PhysicalDrive.Item(15).Location, $Physdrives.PhysicalDrive.Item(16).Location, $Physdrives.PhysicalDrive.Item(17).Location, $Physdrives.PhysicalDrive.Item(18).Location, $Physdrives.PhysicalDrive.Item(19).Location, $Physdrives.PhysicalDrive.Item(20).Location, $Physdrives.PhysicalDrive.Item(21).Location, $Physdrives.PhysicalDrive.Item(22).Location, $Physdrives.PhysicalDrive.Item(23).Location, $Physdrives.PhysicalDrive.Item(24).Location, $Physdrives.PhysicalDrive.Item(25).Location, $Physdrives.PhysicalDrive.Item(26).Location, $Physdrives.PhysicalDrive.Item(27).Location))
+                    }
                         Write-Host "$($SerialNumber) connected for SmartArray configuration."
-                        $Physdrives = Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation "Slot 0"
-                        $DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
+                        #$Physdrives = Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation "Slot 0"
+                        #$DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
+                        #$OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation "Slot 0" -LogicalDriveName LogicalDrive1 -Raid Raid10 -CapacityGiB -1 -DataDrive $DataDriveVAR
 
-                        $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation "Slot 0" -LogicalDriveName LogicalDrive1 -Raid Raid10 -CapacityGiB -1 -DataDrive $DataDriveVAR
-                        $OSresult
+                        $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -DataDrive $DataDriveVAR -Raid Raid10 -CapacityGiB -1 -LegacyBootPriority Primary -LogicalDriveName LogicalDrive1 -SpareDrive $SpareDriveVAR -SpareRebuildMode Roaming
 
                     } else {
                         Write-Host "Failed to connect to $($D_Host.hostname) for arry configuration."
@@ -149,16 +156,18 @@ ForEach ($D_Host in $DHCP_Hosts) {
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power On -Force
                         Write-Host "$($SerialNumber) waiting for BIOS workload profile configuration."
                         $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
-                        $PostWait = 1
+                        $PostWait = 0
                         Do {
                             If ($PostWait -eq 10) {
                                 Write-Host "Server $($D_Host.hostname) boot time excessive.  Failing install.  Review system $($D_Host.hostname). - Final POST before ISO mount."
                                 break
                             }
+                            Write-Host "Waiting for server $($D_Host.hostname) to finish post."
                             Start-Sleep -s 60
-                            Write-Host "Waiting for server $($D_Host.hostname) to finish post. "
+                            $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
                             $PostWait = $PostWait + 1
                             } While (( $Post.PostState -ne "FinishedPost" ) -and ( $Post.PostState -ne "InPostDiscoveryComplete" ))
+
                             Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
                             Set-HPEiLOServerPower -Connection $iLOConnection -Power Reset -Force
                     } else {
