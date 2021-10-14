@@ -20,7 +20,7 @@ ssacli controller slot=0 create type=arrayr0 drives=allunassigned
 
 hwsn=$( cat /sys/class/dmi/id/product_serial )
 
-while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4 ILO_IPv4_GW ILO_IPv4_Network ILO_IPv4_NM ILO_IPv6 ILO_IPv6_GW eno1_IPv4 eno1_IPv4_GW eno1_IPv4_Network eno1_IPv4_NM eno1_IPv6 eno1_IPv6_GW eno1_IPv6_NM SerialNumber log_target ; do
+while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4 ILO_IPv4_GW ILO_IPv4_Network ILO_IPv4_NM ILO_IPv6 ILO_IPv6_GW eno1_IPv4 eno1_IPv4_GW eno1_IPv4_Network eno1_IPv4_NM eno1_IPv6 eno1_IPv6_GW eno1_IPv6_NM SerialNumber log_target image_server ; do
 
   echo Checking $SerialNumber
   if [[ "$hwsn" == "$SerialNumber" ]] ; then
@@ -103,13 +103,13 @@ apt-key del "5744 6EFD E098 E5C9 34B6  9C7D C208 ADDE 26C2 B797"
 apt-key del "476D ADAC 9E64 7EE2 7453  F2A3 B070 680A 5CE2 D476"
 apt-key del "882F 7199 B20F 94BD 7E3E  690E FADD 8D64 B127 5EA3"
 
-rm -f /DF_sysdata.txt
-rm -f /sshpass
-rm -f /ssa.deb
-rm -f /hpePublicKey2048_key1.pub
-rm -f /hpPublicKey1024.pub
-rm -f /hpPublicKey2048_key1.pub
-rm -f /hpPublicKey2048.pub
+#rm -f /DF_sysdata.txt
+#rm -f /sshpass
+#rm -f /ssa.deb
+#rm -f /hpePublicKey2048_key1.pub
+#rm -f /hpPublicKey1024.pub
+#rm -f /hpPublicKey2048_key1.pub
+#rm -f /hpPublicKey2048.pub
 #rm -f /Deep_Init.sh
 #rm -f /install.log
 #rm -f /Cleanup.sh

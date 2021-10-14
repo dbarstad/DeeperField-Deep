@@ -76,7 +76,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
             $ChassisInfo = Get-HPEiLOChassisInfo -Connection $iLOConnection
             $SerialNumber = $ChassisInfo.SerialNumber
             $SNArray=import-csv ./DF_sysdata.txt
-            Write-Host "Checking sysdata for $($SerialNumber)"
+            Write-Host "Checking DF_sysdata for $($SerialNumber)"
 
             ForEach ($Serial in $SNArray) {
                 If ($Serial.SerialNumber -eq $SerialNumber) {
@@ -111,33 +111,56 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
-                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 3 minutes for iLO reset."
-                    Start-Sleep 180
+                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 2 minutes for iLO reset."
+                    Start-Sleep 120
 
 #Configure HPESmartArray
 
+Write-Host Creating new drives
+
+                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
                     $SAConnection = Connect-HPESA -IP $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
+                    $ControllerConfiguration= Get-HPESAConfigurationStatus -Connection $SAConnection
+                	$SlotNumber= $ControllerConfiguration.ConfigurationStatus.ControllerLocation
 
-                    If ( $SAConnection -ne $null ) {
+                	$PhysicalDrives= Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber
+                	$PhysicalDrivesSorted= $PhysicalDrives.PhysicalDrive.Location | Sort-Object
+                    $Drive0= $PhysicalDrivesSorted[0]
+                    	$Drive1= $PhysicalDrivesSorted[1]
+                    	$Drive2= $PhysicalDrivesSorted[2]
+	                    $Drive3= $PhysicalDrivesSorted[3]
+	                    $Drive4= $PhysicalDrivesSorted[4]
+	                    $Drive5= $PhysicalDrivesSorted[5]
+	                    $Drive6= $PhysicalDrivesSorted[6]
+	                    $Drive7= $PhysicalDrivesSorted[7]
+                    $Drive8= $PhysicalDrivesSorted[8]
+	                    $Drive9= $PhysicalDrivesSorted[9]
+	                    $Drive10= $PhysicalDrivesSorted[10]
+	                    $Drive11= $PhysicalDrivesSorted[11]
+	                    $Drive12= $PhysicalDrivesSorted[12]
+	                    $Drive13= $PhysicalDrivesSorted[13]
+	                    $Drive14= $PhysicalDrivesSorted[14]
+	                    $Drive15= $PhysicalDrivesSorted[15]
+                    $Drive16= $PhysicalDrivesSorted[16]
+	                    $Drive17= $PhysicalDrivesSorted[17]
+	                    $Drive18= $PhysicalDrivesSorted[18]
+	                    $Drive19= $PhysicalDrivesSorted[19]
+	                    $Drive20= $PhysicalDrivesSorted[20]
+	                    $Drive21= $PhysicalDrivesSorted[21]
+	                    $Drive22= $PhysicalDrivesSorted[22]
+	                    $Drive23= $PhysicalDrivesSorted[23]
+                    $Drive24= $PhysicalDrivesSorted[24]
+	                    $Drive25= $PhysicalDrivesSorted[25]
+	                    $Drive26= $PhysicalDrivesSorted[26]
+	                    $Drive27= $PhysicalDrivesSorted[27]
 
-                    $PhysicalDrives= Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber
-	                $PhysicalDrivesSorted= $PhysicalDrives.PhysicalDrive.Location | Sort-Object
-                    
-                    $DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
+
+Write-Host Creating OS
+
                     If ($PhysicalDrivesSorted.Count -eq 8) {
-                        $SpareDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(6).Location, $Physdrives.PhysicalDrive.Item(7).Location))
+                        $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -DataDrive @(,@("$Drive0","$Drive1","$Drive2","$Drive3","$Drive4","$Drive5")) -Raid Raid10 -CapacityGiB -1 -LegacyBootPriority Primary -LogicalDriveName LogicalDrive1 -SpareDrive @(,@("$Drive6","$Drive7")) -SpareRebuildMode Dedicated
                     } else {
-                        $SpareDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(6).Location, $Physdrives.PhysicalDrive.Item(7).Location, $Physdrives.PhysicalDrive.Item(8).Location, $Physdrives.PhysicalDrive.Item(9).Location, $Physdrives.PhysicalDrive.Item(10).Location, $Physdrives.PhysicalDrive.Item(11).Location, $Physdrives.PhysicalDrive.Item(12).Location, $Physdrives.PhysicalDrive.Item(13).Location, $Physdrives.PhysicalDrive.Item(14).Location, $Physdrives.PhysicalDrive.Item(15).Location, $Physdrives.PhysicalDrive.Item(16).Location, $Physdrives.PhysicalDrive.Item(17).Location, $Physdrives.PhysicalDrive.Item(18).Location, $Physdrives.PhysicalDrive.Item(19).Location, $Physdrives.PhysicalDrive.Item(20).Location, $Physdrives.PhysicalDrive.Item(21).Location, $Physdrives.PhysicalDrive.Item(22).Location, $Physdrives.PhysicalDrive.Item(23).Location, $Physdrives.PhysicalDrive.Item(24).Location, $Physdrives.PhysicalDrive.Item(25).Location, $Physdrives.PhysicalDrive.Item(26).Location, $Physdrives.PhysicalDrive.Item(27).Location))
-                    }
-                        Write-Host "$($SerialNumber) connected for SmartArray configuration."
-                        #$Physdrives = Get-HPESAPhysicalDrive -Connection $SAConnection -ControllerLocation "Slot 0"
-                        #$DataDriveVAR = @(,@($Physdrives.PhysicalDrive.Item(0).Location, $Physdrives.PhysicalDrive.Item(1).Location, $Physdrives.PhysicalDrive.Item(2).Location, $Physdrives.PhysicalDrive.Item(3).Location, $Physdrives.PhysicalDrive.Item(4).Location, $Physdrives.PhysicalDrive.Item(5).Location))
-                        #$OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation "Slot 0" -LogicalDriveName LogicalDrive1 -Raid Raid10 -CapacityGiB -1 -DataDrive $DataDriveVAR
-
-                        $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -DataDrive $DataDriveVAR -Raid Raid10 -CapacityGiB -1 -LegacyBootPriority Primary -LogicalDriveName LogicalDrive1 -SpareDrive $SpareDriveVAR -SpareRebuildMode Roaming
-
-                    } else {
-                        Write-Host "Failed to connect to $($D_Host.hostname) for arry configuration."
+                        $OSresult = New-HPESALogicalDrive -Connection $SAConnection -ControllerLocation $SlotNumber -DataDrive @(,@("$Drive0","$Drive1","$Drive2","$Drive3","$Drive4","$Drive5")) -Raid Raid10 -CapacityGiB -1 -LegacyBootPriority Primary -LogicalDriveName LogicalDrive1 -SpareDrive @(,@("$Drive6","$Drive7","$Drive8","$Drive9","$Drive10","$Drive11","$Drive12","$Drive13","$Drive14","$Drive15","$Drive16","$Drive17","$Drive18","$Drive19","$Drive20","$Drive21","$Drive22","$Drive23","$Drive24","$Drive25","$Drive26","$Drive27")) -SpareRebuildMode Roaming
                     }
 
 #Configure HPEBIOS
@@ -148,6 +171,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                         Write-Host "$($SerialNumber) connected for BIOS configuration."
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power GracefulShutdown -Force
+                        Start-Sleep 20
                         Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
                         #Set-HPEiLOVirtualMediaStatus -Connection $iLOConnection -Device CD -VMBootOption BootOnNextReset
                         Set-HPEiLOOneTimeBootOption -Connection $iLOConnection -BootSourceOverrideEnable Once -BootSourceOverrideTarget CD

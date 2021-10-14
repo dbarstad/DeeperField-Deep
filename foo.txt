@@ -66,3 +66,104 @@ HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)
    Array C
 
       logicaldrive 3 (447.10 GB, RAID 0, OK)
+
+      
+      
+      
+      
+      
+      
+      
+Error: This operation is not supported with the current configuration. Use the
+       "show" command on devices to show additional details about the
+       configuration.
+       Reason: Not supported
+
+=> controller slot=0 show
+
+HPE Smart Array P816i-a SR Gen10 in Slot 0 (Embedded)
+   Bus Interface: PCI
+   Slot: 0
+   Serial Number: PEYHD0DRHD40Y2
+   RAID 6 (ADG) Status: Enabled
+   Controller Status: OK
+   Hardware Revision: A
+   Firmware Version: 3.53-0
+   Firmware Supports Online Firmware Activation: True
+   Driver Supports Online Firmware Activation: True
+   Rebuild Priority: High
+   Expand Priority: Medium
+   Surface Scan Delay: 3 secs
+   Surface Scan Mode: Idle
+   Parallel Surface Scan Supported: Yes
+   Current Parallel Surface Scan Count: 1
+   Max Parallel Surface Scan Count: 16
+   Queue Depth: Automatic
+   Monitor and Performance Delay: 60  min
+   Elevator Sort: Enabled
+   Degraded Performance Optimization: Disabled
+   Inconsistency Repair Policy: Disabled
+   Write Cache Bypass Threshold Size: 1040 KiB
+   Wait for Cache Room: Disabled
+   Surface Analysis Inconsistency Notification: Disabled
+   Post Prompt Timeout: 0 secs
+   Cache Board Present: True
+   Cache Status: Not Configured
+   Configured Drive Write Cache Policy: Disable
+   Unconfigured Drive Write Cache Policy: Default
+   Total Cache Size: 4.0
+   Total Cache Memory Available: 3.8
+   No-Battery Write Cache: Disabled
+   SSD Caching RAID5 WriteBack Enabled: True
+   SSD Caching Version: 2
+   Cache Backup Power Source: Batteries
+   Battery/Capacitor Count: 1
+   Battery/Capacitor Status: OK
+   SATA NCQ Supported: True
+   Spare Activation Mode: Activate on physical drive failure (default)
+   Controller Temperature (C): 58
+   Capacitor Temperature  (C): 46
+   Number of Ports: 4 Internal only
+   Encryption: Not Set
+   Express Local Encryption: False
+   Driver Name: smartpqi
+   Driver Version: Linux 1.2.10-025
+   PCI Address (Domain:Bus:Device.Function): 0000:5C:00.0
+   Negotiated PCIe Data Rate: PCIe 3.0 x8 (7880 MB/s)
+   Controller Mode: Mixed
+   Port Max Phy Rate Limiting Supported: False
+   Latency Scheduler Setting: Disabled
+   Current Power Mode: MaxPerformance
+   Survival Mode: Enabled
+   Host Serial Number: 2M20340CLG
+   Sanitize Erase Supported: True
+   Sanitize Lock: None
+   Sensor ID: 0
+      Location: Capacitor
+      Current Value (C): 46
+      Max Value Since Power On: 50
+   Sensor ID: 1
+      Location: ASIC
+      Current Value (C): 58
+      Max Value Since Power On: 67
+   Sensor ID: 2
+      Location: Unknown
+      Current Value (C): 46
+      Max Value Since Power On: 50
+   Primary Boot Volume: None
+   Secondary Boot Volume: None
+
+=>
+      
+      
+      
+      
+      
+      
+      
+      
+apt-key del "FB41 0E68 CEDF 95D0 6681  1E95 527B C53A 2689 B887"
+apt-key del "5744 6EFD E098 E5C9 34B6  9C7D C208 ADDE 26C2 B797"
+apt-key del "476D ADAC 9E64 7EE2 7453  F2A3 B070 680A 5CE2 D476"
+apt-key del "882F 7199 B20F 94BD 7E3E  690E FADD 8D64 B127 5EA3"
+      

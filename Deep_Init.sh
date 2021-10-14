@@ -9,7 +9,7 @@ echo $dt == Deep_Init - Importing DF_sysdata.txt
 
 hwsn=$( cat /sys/class/dmi/id/product_serial )
 
-while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4 ILO_IPv4_GW ILO_IPv4_Network ILO_IPv4_NM ILO_IPv6 ILO_IPv6_GW eno1_IPv4 eno1_IPv4_GW eno1_IPv4_Network eno1_IPv4_NM eno1_IPv6 eno1_IPv6_GW eno1_IPv6_NM SerialNumber log_target ; do
+while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4 ILO_IPv4_GW ILO_IPv4_Network ILO_IPv4_NM ILO_IPv6 ILO_IPv6_GW eno1_IPv4 eno1_IPv4_GW eno1_IPv4_Network eno1_IPv4_NM eno1_IPv6 eno1_IPv6_GW eno1_IPv6_NM SerialNumber log_target image_server ; do
 
   echo Checking $SerialNumber 
   if [[ "$hwsn" == "$SerialNumber" ]] ; then
@@ -24,14 +24,19 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Pulling additional files |& tee -a /install.log
 echo $dt == Deep_Init - Pulling additional files
 
-wget -P / http://$log_target/Nokia_Deep/DF_sysdata.txt
-wget -P / http://$log_target/Nokia_Deep/sshpass
+echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/ |& tee -a /install.log
+echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/
+
+wget -P / http://$image_server/Nokia_Deep/DF_sysdata.txt
+wget -P / http://$image_server/Nokia_Deep/sshpass
 chmod 777 /sshpass
-wget -P / http://$log_target/Nokia_Deep/ssa.deb
-wget -P / http://$log_target/Nokia_Deep/hpePublicKey2048_key1.pub
-wget -P / http://$log_target/Nokia_Deep/hpPublicKey1024.pub
-wget -P / http://$log_target/Nokia_Deep/hpPublicKey2048_key1.pub
-wget -P / http://$log_target/Nokia_Deep/hpPublicKey2048.pub
+wget -P / http://$image_server/Nokia_Deep/ssa.deb
+wget -P / http://$image_server/Nokia_Deep/hpePublicKey2048_key1.pub
+wget -P / http://$image_server/Nokia_Deep/hpPublicKey1024.pub
+wget -P / http://$image_server/Nokia_Deep/hpPublicKey2048_key1.pub
+wget -P / http://$image_server/Nokia_Deep/hpPublicKey2048.pub
+wget -P / http://$image_server/Nokia_Deep/Cleanup.sh
+chmod 777 /Cleanup.sh
 apt-key add /hpePublicKey2048_key1.pub
 apt-key add /hpPublicKey1024.pub
 apt-key add /hpPublicKey2048.pub
