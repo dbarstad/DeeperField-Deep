@@ -111,8 +111,8 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
-                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 2 minutes for iLO reset."
-                    Start-Sleep 120
+                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 90 seconds for iLO reset."
+                    Start-Sleep 90
 
 #Configure HPESmartArray
 
@@ -187,21 +187,21 @@ Write-Host Creating OS
                                 break
                             }
                             Write-Host "Waiting for server $($D_Host.hostname) to finish post."
-                            Start-Sleep -s 60
+                            Start-Sleep -s 30
                             $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
                             $PostWait = $PostWait + 1
                             } While (( $Post.PostState -ne "FinishedPost" ) -and ( $Post.PostState -ne "InPostDiscoveryComplete" ))
 
-                            Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
-                            Set-HPEiLOServerPower -Connection $iLOConnection -Power Reset -Force
+                            #Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
+                            #Set-HPEiLOServerPower -Connection $iLOConnection -Power Reset -Force
                     } else {
                         Write_Host "Connection to $($D_Host.hostname) failed."
                     }
                     
-                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
+                    #$iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
 
                     
-                    Reset-HPEiLO -Connection $iLOConnection -Device Server -Force -ResetType ForceRestart -Confirm:$false
+                    #Reset-HPEiLO -Connection $iLOConnection -Device Server -Force -ResetType ForceRestart -Confirm:$false
                 }
             }
         }

@@ -27,7 +27,7 @@ echo $dt == Deep_Init - Pulling additional files
 echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/ |& tee -a /install.log
 echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/
 
-wget -P / http://$image_server/Nokia_Deep/DF_sysdata.txt
+#wget -P / http://$image_server/Nokia_Deep/DF_sysdata.txt
 wget -P / http://$image_server/Nokia_Deep/sshpass
 chmod 777 /sshpass
 wget -P / http://$image_server/Nokia_Deep/ssa.deb
@@ -94,7 +94,7 @@ echo "" >> /etc/network/interfaces
 echo  |& tee -a /install.log
 echo  |& tee -a /install.log
 
-/etc/init.d/networking restart
+# /etc/init.d/networking restart
 
 sleep 10
 

@@ -16,7 +16,7 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Cleanup - Converting all unassigned drives to indvidial Array/R0 pairs |& tee -a /install.log
 echo $dt == Cleanup - Converting all unassigned drives to indvidial Array/R0 pairs
 
-ssacli controller slot=0 create type=arrayr0 drives=allunassigned
+echo y | ssacli controller slot=0 create type=arrayr0 drives=allunassigned
 
 hwsn=$( cat /sys/class/dmi/id/product_serial )
 
