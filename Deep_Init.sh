@@ -27,7 +27,6 @@ echo $dt == Deep_Init - Pulling additional files
 echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/ |& tee -a /install.log
 echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/
 
-#wget -P / http://$image_server/Nokia_Deep/DF_sysdata.txt
 wget -P / http://$image_server/Nokia_Deep/sshpass
 chmod 777 /sshpass
 wget -P / http://$image_server/Nokia_Deep/ssa.deb
@@ -96,7 +95,7 @@ echo  |& tee -a /install.log
 
 # /etc/init.d/networking restart
 
-sleep 10
+#sleep 10
 
 dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Configuraiton complete.  Preparing Cleanup.sh on reboot. |& tee -a /install.log
@@ -121,5 +120,3 @@ echo WantedBy=default.target  >> /etc/systemd/system/Cleanup.service
 
 systemctl daemon-reload
 systemctl enable Cleanup.service
-
-reboot

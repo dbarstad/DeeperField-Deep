@@ -11,8 +11,8 @@ Start-Transcript -Path $logfilepath -append
 
 Write-Host "Setting Static variables"
 
-    $iLO_adminilo_pw = "Trace3_2021!"
-    $iLO_apouser_pw = "Trace3_2021!"
+    $iLO_adminilo_pw = "We2L0!Limbo"
+    $iLO_apouser_pw = "APO2Limbo!"
     $dnsserver = ,@("71.10.216.1","71.10.216.2")
     $dnsserverv6 = ,@("2607:f428:ffff:ffff::1","2607:f428:ffff:ffff::2")
     $dnstype = ,@("Primary","Secondary")
@@ -72,7 +72,6 @@ ForEach ($D_Host in $DHCP_Hosts) {
                 } While ( $Post.PostState -ne "FinishedPost" )
             }
 
-
             $ChassisInfo = Get-HPEiLOChassisInfo -Connection $iLOConnection
             $SerialNumber = $ChassisInfo.SerialNumber
             $SNArray=import-csv ./DF_sysdata.txt
@@ -97,7 +96,7 @@ ForEach ($D_Host in $DHCP_Hosts) {
                     Set-HPEiLOAccessSetting -Connection $iLOConnection -AuthenticationFailuresBeforeDelay 0 -PasswordComplexityEnabled Yes -ServerFQDN $Serial.ILO_IPv4 -ServerName $Serial.Server_Name
 
                     Write-Host "Configuring SNMP alerting on $($SerialNumber)."
-                    Set-HPEiLOSNMPSetting -Connection $iLOConnection -ReadCommunity1 ChangeMe -SystemContact "DL-OSS-Cont-Integ-Eng@charter.com" -SystemLocation CHRCNCTR
+                    Set-HPEiLOSNMPSetting -Connection $iLOConnection -ReadCommunity1 SuD0CiERoStr -SystemContact "DL-OSS-Cont-Integ-Eng@charter.com" -SystemLocation CHRCNCTR
                     Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier iLOHostname
                     
                     Write-Host "Configuring mail alerting on $($SerialNumber)."
@@ -172,6 +171,7 @@ Write-Host Creating OS
                         Write-Host "$($SerialNumber) connected for BIOS configuration."
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power GracefulShutdown -Force
                         Start-Sleep 20
+                        Set-HPEiLOAccessSetting -Connection $iLOConnection -AuthenticationFailuresBeforeDelay 0 -PasswordComplexityEnabled Yes -ServerFQDN $Serial.ILO_IPv4 -ServerName $Serial.Server_Name
                         Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
                         #Set-HPEiLOVirtualMediaStatus -Connection $iLOConnection -Device CD -VMBootOption BootOnNextReset
                         Set-HPEiLOOneTimeBootOption -Connection $iLOConnection -BootSourceOverrideEnable Once -BootSourceOverrideTarget CD
@@ -198,9 +198,7 @@ Write-Host Creating OS
                         Write_Host "Connection to $($D_Host.hostname) failed."
                     }
                     
-                    #$iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
-
-                    
+                    #$iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication                    
                     #Reset-HPEiLO -Connection $iLOConnection -Device Server -Force -ResetType ForceRestart -Confirm:$false
                 }
             }
