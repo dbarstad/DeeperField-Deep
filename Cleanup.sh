@@ -38,14 +38,6 @@ memtotal=$( cat /proc/meminfo | grep MemTotal )
 
 echo "Memory capacity presented by cat /proc/meminfo is:"$memtotal":" |& tee -a /install.log
 
-# MemTotal = Total usable RAM (i.e. physical RAM minus a few reserved bits and the kernel binary code)
-
-if [[ "$memtotal" == *"19668"* ]]; then
-  echo "Memory capacity is consistent with the baseline" |& tee -a /install.log
-else
-  echo "Memory capacity is not consistent with baseline" |& tee -a /install.log
-fi
-
 echo |& tee -a /install.log
 
 ifconfig -a eno1  |& tee -a /install.log
