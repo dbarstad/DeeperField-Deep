@@ -34,68 +34,59 @@ Write-Host "Parsing dnsmasq.leases file"
 $DHCP_Hosts = import-csv ./dnsmasq.leases -Header date,status,IP,MAC,hostname
 
 ForEach ($D_Host in $DHCP_Hosts) {
-
+Write-Host "Checking $($D_Host.hostname)"
     If ($D_Host.hostname.StartsWith("ILO")) {
         Write-Host "Found HPE host $($D_Host.hostname) on IP $($D_Host.IP)"
 
-        $Def_iLO_Pass = Read-Host "Please enter the systems default iLO Administrator password for $($D_Host.hostname) or hit enter to skip this iLO (8 alpha numeric characters)"
-        If (( $Def_iLO_Pass -eq "" ) -and ( $D_Host.hostname -ne "ILO2M20340CLG" )) {
-            Write-Host "Skipping $($D_Host.hostname)"
-        }
+        $SN = $D_Host.hostname.Substring(3,10)
 
-        If ($D_Host.hostname.StartsWith("ILO2M20340CLG")) {
-            Write-Host "Found test server iLO"
-            $Def_iLO_Pass = "X6T8YRY5"
-        }
-    
-        Write-Host "Conecting to $($D_Host.hostname) - IP $($D_Host.IP) ..."
+        $SNArray=import-csv ./DF_sysdata.txt
+        Write-Host "Checking DF_sysdata for $($SN)"
 
-        $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
+        ForEach ($Serial in $SNArray) {
+            If ($Serial.SerialNumber -eq $SN) {
+                
+                Write-Host "$($SerialNumber) confirmed... configuring..."
+                Write-Host "Conecting to $($D_Host.hostname) - IP $($D_Host.IP) ..."
 
-        If ( $iLOConnection -ne $null ) {
+                $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
 
-            $PowerState = Get-HPEiLOServerPower -Connection $iLOConnection
-            $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
-            If ( $PowerState.ServerPower -eq "Off" ) {
-                Write-host "Server is powered off" 
-                Write-host "Powering on server.  10 minute wait injected"
-                Set-HPEiLOServerPower -Connection $iLOConnection -Power On
-                Start-Sleep -s 600
-                } else {
-                Write-host "Server $($D_Host.hostname) is powered on" 
-            }
-            If (( $Post.PostState -eq "FinishedPost" ) -or ( $Post.PostState -eq "InPostDiscoveryComplete" )){
-                Write-host "POST completed.  Starting configuration"
-                } else {
-                Write-host "Server has not finished POST.  Waiting ..."
-                $PostWait = 1
-                Do {
-                    If ($PostWait -eq 10) {
-                        Write-Host "Server $($D_Host.hostname) boot time excessive.  Failing install.  Review system $($D_Host.hostname)."
-                        break
+                If ( $iLOConnection -ne $null ) {
+
+                    $PowerState = Get-HPEiLOServerPower -Connection $iLOConnection
+                    $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
+                    If ( $PowerState.ServerPower -eq "Off" ) {
+                        Write-host "Server is powered off" 
+                        Write-host "Powering on server.  10 minute wait injected"
+                        Set-HPEiLOServerPower -Connection $iLOConnection -Power On
+                        Start-Sleep -s 600
+                    } else {
+                        Write-host "Server $($D_Host.hostname) is powered on" 
                     }
-                    Start-Sleep -s 60
-                    Write-Host "Waiting for server $($D_Host.hostname) to fnish post. "
-                    $PostWait = $PostWait + 1
-                } While ( $Post.PostState -ne "FinishedPost" )
-            }
-
-            $ChassisInfo = Get-HPEiLOChassisInfo -Connection $iLOConnection
-            $SerialNumber = $ChassisInfo.SerialNumber
-            $SNArray=import-csv ./DF_sysdata.txt
-            Write-Host "Checking DF_sysdata for $($SerialNumber)"
-
-            ForEach ($Serial in $SNArray) {
-                If ($Serial.SerialNumber -eq $SerialNumber) {
-
-                    Write-Host "$($SerialNumber) validated... configuring..."
+                        
+                    If (( $Post.PostState -eq "FinishedPost" ) -or ( $Post.PostState -eq "InPostDiscoveryComplete" )){
+                        Write-host "POST completed.  Starting configuration"
+                    } else {
+                        Write-host "Server has not finished POST.  Waiting ..."
+                        $PostWait = 1
+                        Do {
+                            If ($PostWait -eq 10) {
+                                Write-Host "Server $($D_Host.hostname) boot time excessive.  Failing install.  Review system $($D_Host.hostname)."
+                                break
+                            }
+                            Start-Sleep -s 60
+                            Write-Host "Waiting for server $($D_Host.hostname) to fnish post. "
+                            $PostWait = $PostWait + 1
+                        } While ( $Post.PostState -ne "FinishedPost" )
+                    }
+                    
 #Configure HPEiLO
 
-                    $iLOHostName = "NCE-DFCI-01-ILO" + $SerialNumber
+                    $iLOHostName = "NCE-DFCI-01-ILO" + $SN
 
                     #Set-HPEiLOLicense -Connection $iLOConnection -Key "332N6-VJMMM-MHTPD-L7XNR-29G8B"
 
-                    Write-Host "Creating iLO users on $($SerialNumber)."
+                    Write-Host "Creating iLO users on $($SN)."
                     Add-HPEiLOUser -Connection $iLOConnection -LoginName adminilo -Password $iLO_adminilo_pw -Username adminilo -HostBIOSConfigPrivilege Yes -HostNICConfigPrivilege Yes -HostStorageConfigPrivilege Yes -iLOConfigPrivilege Yes -LoginPrivilege Yes  -RemoteConsolePrivilege Yes -SystemRecoveryConfigPrivilege Yes -UserConfigPrivilege Yes -VirtualMediaPrivilege Yes -VirtualPowerAndResetPrivilege Yes
                     Add-HPEiLOUser -Connection $iLOConnection -LoginName "APO Support Desk" -Password $iLO_apouser_pw -Username apouser -HostBIOSConfigPrivilege No -HostNICConfigPrivilege No -HostStorageConfigPrivilege No -iLOConfigPrivilege No -LoginPrivilege Yes  -RemoteConsolePrivilege No -ServiceAccount Yes -SystemRecoveryConfigPrivilege No -UserConfigPrivilege No -VirtualMediaPrivilege No
                     
@@ -105,25 +96,25 @@ ForEach ($D_Host in $DHCP_Hosts) {
 
                     Write-Host "Configuring SNMP alerting on $($SerialNumber)."
                     Set-HPEiLOSNMPSetting -Connection $iLOConnection -ReadCommunity1 SuD0CiERoStr -SystemContact "DL-OSS-Cont-Integ-Eng@charter.com" -SystemLocation CHRCNCTR
-                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier iLOHostname
+#                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier $iLOHostname
                     
                     Write-Host "Configuring mail alerting on $($SerialNumber)."
                     Set-HPEiLOAlertMailSetting -AlertMailEmail "DL-OSS-Cont-Integ-Eng@charter.com" -AlertMailEnabled Yes -AlertMailSenderDomain "charter.com" -AlertMailSMTPServer "nce.mail.chartercom.com" -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
 
                     Write-Host "Configuring iLO IPv6 on $($SerialNumber)."
-                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
+#                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
                     
                     Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
-                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 60 seconds for iLO reset."
-                    Start-Sleep 60
+                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 90 seconds for iLO reset."
+                    Start-Sleep 90
 
 #Configure HPESmartArray
 
 Write-Host Creating new drives
 
-                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
-                    $SAConnection = Connect-HPESA -IP $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
+                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
+                    $SAConnection = Connect-HPESA -IP $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
                     $ControllerConfiguration= Get-HPESAConfigurationStatus -Connection $SAConnection
                 	$SlotNumber= $ControllerConfiguration.ConfigurationStatus.ControllerLocation
 
@@ -169,8 +160,8 @@ Write-Host Creating OS
                     }
 
 #Configure HPEBIOS
-                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
-                    $BIOSConnection = Connect-HPEBIOS -IP $D_Host.IP -Password $Def_iLO_Pass -Username $iLOuser -DisableCertificateAuthentication
+                    $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
+                    $BIOSConnection = Connect-HPEBIOS -IP $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
 
                     If ( $BIOSConnection -ne $null ) {
 

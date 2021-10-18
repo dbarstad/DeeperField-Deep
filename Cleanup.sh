@@ -29,7 +29,7 @@ while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4
 		break
   fi
 
-done < /sysdata.txt
+done < /DF_sysdata.txt
 
 echo Server serial number - $hwsn |& tee -a /install.log
 echo |& tee -a /install.log
@@ -91,7 +91,7 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Pushing logs to image host |& tee -a /install.log
 echo $dt == Deep_Init - Pushing logs to image host
 
-/sshpass -p "enter_passwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /install.log root@$log_target:/netboot/Nokia_Deep/Host_Logs/$hwsn.log
+/sshpass -p "T3pxeGRIC" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /install.log root@$log_target:/netboot/Nokia_Deep/Host_Logs/$hwsn.log
 
 dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Cleaning up RSA Keys and SSACLI package|& tee -a /install.log

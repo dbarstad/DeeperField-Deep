@@ -11,7 +11,7 @@ hwsn=$( cat /sys/class/dmi/id/product_serial )
 
 while IFS==, read -r Server_Name ILO_Name ILO_User ILO_DEF_PASS ILO_MAC ILO_IPv4 ILO_IPv4_GW ILO_IPv4_Network ILO_IPv4_NM ILO_IPv6 ILO_IPv6_GW eno1_IPv4 eno1_IPv4_GW eno1_IPv4_Network eno1_IPv4_NM eno1_IPv6 eno1_IPv6_GW eno1_IPv6_NM SerialNumber log_target image_server ; do
 
-  echo Checking $SerialNumber 
+  echo Checking $SerialNumber |& tee -a /install.log
   if [[ "$hwsn" == "$SerialNumber" ]] ; then
 		echo $dt == Deep_Init - Matching hwsn success |& tee -a /install.log
 		echo $dt == Deep_Init - Matching hwsn success
@@ -24,8 +24,8 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Pulling additional files |& tee -a /install.log
 echo $dt == Deep_Init - Pulling additional files
 
-echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/ |& tee -a /install.log
-echo $dt == Deep_Init - pulling additional content from http://$dhcphost/Nokia_Deep/
+echo $dt == Deep_Init - pulling additional content from http://$image_server/Nokia_Deep/ |& tee -a /install.log
+echo $dt == Deep_Init - pulling additional content from http://$image_server/Nokia_Deep/
 
 wget -P / http://$image_server/Nokia_Deep/sshpass
 chmod 777 /sshpass
@@ -46,7 +46,8 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Drop drive spares |& tee -a /install.log
 echo $dt == Deep_Init - Drop drive spares
 
-ssacli controller slot=0 array a remove spares=2I:3:7,2I:3:8
+#ssacli controller slot=0 array a remove spares=2I:3:7,2I:3:8
+ssacli controller slot=0 array a remove spares=3I:5:1,3I:5:2,1I:1:7,1I:1:8,1I:1:9,1I:1:10,1I:1:11,1I:1:12,1I:1:13,1I:1:14,1I:1:15,1I:1:16,1I:1:17,1I:1:18,1I:1:19,1I:1:20,1I:1:21,1I:1:22,1I:1:23,1I:1:24,1I:1:25,1I:1:27
 
 dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Setting root password |& tee -a /install.log
@@ -106,7 +107,7 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Configuring final script for drive configuration and cleanup after reboot |& tee -a /install.log
 echo $dt == Deep_Init - Configuring final script for drive configuration and cleanup after reboot
 
-echo [Unit] >> /etc/systemd/system/Cleanup.service
+echo [Unit] > /etc/systemd/system/Cleanup.service
 echo Description=Invoke Cleanup script  >> /etc/systemd/system/Cleanup.service
 echo After=network-online.target  >> /etc/systemd/system/Cleanup.service
 echo  >> /etc/systemd/system/Cleanup.service
