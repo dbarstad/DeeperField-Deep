@@ -103,16 +103,16 @@ apt-key del "5744 6EFD E098 E5C9 34B6  9C7D C208 ADDE 26C2 B797"
 apt-key del "476D ADAC 9E64 7EE2 7453  F2A3 B070 680A 5CE2 D476"
 apt-key del "882F 7199 B20F 94BD 7E3E  690E FADD 8D64 B127 5EA3"
 
-#rm -f /DF_sysdata.txt
-#rm -f /sshpass
-#rm -f /ssa.deb
-#rm -f /hpePublicKey2048_key1.pub
-#rm -f /hpPublicKey1024.pub
-#rm -f /hpPublicKey2048_key1.pub
-#rm -f /hpPublicKey2048.pub
-#rm -f /Deep_Init.sh
-#rm -f /install.log
-#rm -f /Cleanup.sh
+rm -f /DF_sysdata.txt
+rm -f /sshpass
+rm -f /ssa.deb
+rm -f /hpePublicKey2048_key1.pub
+rm -f /hpPublicKey1024.pub
+rm -f /hpPublicKey2048_key1.pub
+rm -f /hpPublicKey2048.pub
+rm -f /Deep_Init.sh
+rm -f /install.log
+rm -f /Cleanup.sh
 
 wall "System configuration complete"
 
