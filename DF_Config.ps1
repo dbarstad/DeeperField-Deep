@@ -46,7 +46,7 @@ Write-Host "Checking $($D_Host.hostname)"
         ForEach ($Serial in $SNArray) {
             If ($Serial.SerialNumber -eq $SN) {
                 
-                Write-Host "$($SerialNumber) confirmed... configuring..."
+                Write-Host "$($SN) confirmed... configuring..."
                 Write-Host "Conecting to $($D_Host.hostname) - IP $($D_Host.IP) ..."
 
                 $iLOConnection = Connect-HPEiLO -Address $D_Host.IP -Password $Serial.ILO_DEF_PASS -Username $Serial.ILO_User -DisableCertificateAuthentication
@@ -90,23 +90,23 @@ Write-Host "Checking $($D_Host.hostname)"
                     Add-HPEiLOUser -Connection $iLOConnection -LoginName adminilo -Password $iLO_adminilo_pw -Username adminilo -HostBIOSConfigPrivilege Yes -HostNICConfigPrivilege Yes -HostStorageConfigPrivilege Yes -iLOConfigPrivilege Yes -LoginPrivilege Yes  -RemoteConsolePrivilege Yes -SystemRecoveryConfigPrivilege Yes -UserConfigPrivilege Yes -VirtualMediaPrivilege Yes -VirtualPowerAndResetPrivilege Yes
                     Add-HPEiLOUser -Connection $iLOConnection -LoginName "APO Support Desk" -Password $iLO_apouser_pw -Username apouser -HostBIOSConfigPrivilege No -HostNICConfigPrivilege No -HostStorageConfigPrivilege No -iLOConfigPrivilege No -LoginPrivilege Yes  -RemoteConsolePrivilege No -ServiceAccount Yes -SystemRecoveryConfigPrivilege No -UserConfigPrivilege No -VirtualMediaPrivilege No
                     
-                    Write-Host "Setting Security Banner and Authentication delay on $($SerialNumber)."
+                    Write-Host "Setting Security Banner and Authentication delay on $($SN)."
                     Set-HPEiLOLoginSecurityBanner -Connection $iLOConnection -SecurityMessageEnabled Yes
                     Set-HPEiLOAccessSetting -Connection $iLOConnection -AuthenticationFailuresBeforeDelay 0 -PasswordComplexityEnabled Yes -ServerFQDN $Serial.ILO_IPv4 -ServerName $Serial.Server_Name
 
-                    Write-Host "Configuring SNMP alerting on $($SerialNumber)."
+                    Write-Host "Configuring SNMP alerting on $($SN)."
                     Set-HPEiLOSNMPSetting -Connection $iLOConnection -ReadCommunity1 SuD0CiERoStr -SystemContact "DL-OSS-Cont-Integ-Eng@charter.com" -SystemLocation CHRCNCTR
-                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier $iLOHostname
+#                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier $iLOHostname
                     
-                    Write-Host "Configuring mail alerting on $($SerialNumber)."
+                    Write-Host "Configuring mail alerting on $($SN)."
                     Set-HPEiLOAlertMailSetting -AlertMailEmail "DL-OSS-Cont-Integ-Eng@charter.com" -AlertMailEnabled Yes -AlertMailSenderDomain "charter.com" -AlertMailSMTPServer "nce.mail.chartercom.com" -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
 
-                    Write-Host "Configuring iLO IPv6 on $($SerialNumber)."
-                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
+                    Write-Host "Configuring iLO IPv6 on $($SN)."
+#                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
                     
                     Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
-                    Write-Host "iLO for $($SerialNumber) configured.  Moving to SmartArray Config.  Waiting 90 seconds for iLO reset."
+                    Write-Host "iLO for $($SN) configured.  Moving to SmartArray Config.  Waiting 90 seconds for iLO reset."
                     Start-Sleep 90
 
 #Configure HPESmartArray
@@ -164,7 +164,7 @@ Write-Host Creating OS
 
                     If ( $BIOSConnection -ne $null ) {
 
-                        Write-Host "$($SerialNumber) connected for BIOS configuration."
+                        Write-Host "$($SN) connected for BIOS configuration."
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power GracefulShutdown -Force
                         Start-Sleep 20
                         Set-HPEiLOAccessSetting -Connection $iLOConnection -AuthenticationFailuresBeforeDelay 0 -PasswordComplexityEnabled Yes -ServerFQDN $Serial.ILO_IPv4 -ServerName $Serial.Server_Name
@@ -175,7 +175,7 @@ Write-Host Creating OS
                         Set-HPEBIOSInternalSDCardSlot -Connection $BIOSConnection -InternalSDCardSlot Disabled
 
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power On -Force
-                        Write-Host "$($SerialNumber) waiting for BIOS workload profile configuration."
+                        Write-Host "$($SN) waiting for BIOS workload profile configuration."
                         $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
                         $PostWait = 0
                         Do {
@@ -195,8 +195,8 @@ Write-Host Creating OS
                         Write_Host "Connection to $($D_Host.hostname) failed."
                     }
                     
-                    Write-Host "Configuring iLO IPv4 on $($SerialNumber)."
-                    Set-HPEiLOIPv4NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv4Enabled No -DNSName $iLOHostName -DNSServer $dnsserver -DNSServerType $dnstype -DomainName $iLODomain -LinkSpeedMbps Automatic
+                    Write-Host "Configuring iLO IPv4 on $($SN)."
+#                    Set-HPEiLOIPv4NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv4Enabled No -DNSName $iLOHostName -DNSServer $dnsserver -DNSServerType $dnstype -DomainName $iLODomain -LinkSpeedMbps Automatic
 
                 }
             }

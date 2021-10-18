@@ -73,8 +73,8 @@ dt=`date '+%d/%m/%Y_%H:%M:%S'`
 echo $dt == Deep_Init - Setting eno1 IF details |& tee -a /install.log
 echo $dt == Deep_Init - Setting eno1 IF details
 
-sed -i '/auto eno1/d' /etc/sysconfig/network-scripts/ifcfg-eno1
-sed -i '/iface eno1/d' /etc/sysconfig/network-scripts/ifcfg-eno1
+sed -i '/auto eno1/d' /etc/network/interfaces
+sed -i '/iface eno1/d' /etc/network/interfaces
 
 echo "" >> /etc/network/interfaces
 echo "" >> /etc/network/interfaces
