@@ -108,4 +108,4 @@ rm -f /Cleanup.sh
 
 wall "System configuration complete"
 
-#shutdown -h now
+shutdown -h now
