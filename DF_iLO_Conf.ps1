@@ -57,11 +57,11 @@ Write-Host "Checking $($D_Host.hostname)"
 
                     Write-Host "Configuring iLO IPv6 on $($SN)."
                     Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
-                    
-                    Set-HPEiLOAccessSetting -Connection $iLOConnection  -ServerFQDN $Serial.eno1_IPv4 -ServerName $Serial.Server_Name
 
                     Write-Host "Configuring iLO IPv4 on $($SN)."
                     Set-HPEiLOIPv4NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv4Enabled No -DNSName $iLOHostName -DNSServer $dnsserver -DNSServerType $dnstype -DomainName $iLODomain -LinkSpeedMbps Automatic -IPv4Address $Serial.ILO_IPv4 -IPv4Gateway $Serial.ILO_IPv4_GW -IPv4SubnetMask $Serial.ILO_IPv4_NM
+
+                    Set-HPEiLOAccessSetting -Connection $iLOConnection  -ServerFQDN $Serial.eno1_IPv4 -ServerName $Serial.Server_Name
                 }
             }
         }
