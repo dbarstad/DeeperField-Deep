@@ -96,13 +96,10 @@ Write-Host "Checking $($D_Host.hostname)"
 
                     Write-Host "Configuring SNMP alerting on $($SN)."
                     Set-HPEiLOSNMPSetting -Connection $iLOConnection -ReadCommunity1 SuD0CiERoStr -SystemContact "DL-OSS-Cont-Integ-Eng@charter.com" -SystemLocation CHRCNCTR
-                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier $iLOHostname
+                    Set-HPEiLOSNMPAlertSetting -Connection $iLOConnection -AlertEnabled Yes -ColdStartTrapBroadcast Enabled -PeriodicHSATrapConfiguration Disabled -SNMPv1Enabled Disabled -TrapSourceIdentifier iLOHostname
                     
                     Write-Host "Configuring mail alerting on $($SN)."
                     Set-HPEiLOAlertMailSetting -AlertMailEmail "DL-OSS-Cont-Integ-Eng@charter.com" -AlertMailEnabled Yes -AlertMailSenderDomain "charter.com" -AlertMailSMTPServer "nce.mail.chartercom.com" -Connection $iLOConnection -AlertMailSMTPAuthEnabled No -AlertMailSMTPSecureEnabled Yes
-
-                    Write-Host "Configuring iLO IPv6 on $($SN)."
-                    Set-HPEiLOIPv6NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv6StatefulMode Disabled -DHCPv6StatelessMode Disabled -DNSName $iLOHostName -DNSServer $dnsserverv6 -DNSServerType $dnstype
                     
                     Reset-HPEiLO -Connection $iLOConnection -Device iLO -Force -ResetType ForceRestart -Confirm:$false
 
@@ -175,37 +172,17 @@ Write-Host Creating OS
                         Set-HPEBIOSInternalSDCardSlot -Connection $BIOSConnection -InternalSDCardSlot Disabled
 
                         Set-HPEiLOServerPower -Connection $iLOConnection -Power On -Force
-                        Write-Host "$($SN) waiting for BIOS workload profile configuration."
-                        $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
-                        $PostWait = 0
-                        Do {
-                            If ($PostWait -eq 10) {
-                                Write-Host "Server $($D_Host.hostname) boot time excessive.  Failing install.  Review system $($D_Host.hostname). - Final POST before ISO mount."
-                                break
-                            }
-                            Write-Host "Waiting for server $($D_Host.hostname) to finish post."
-                            Start-Sleep -s 30
-                            $Post = Get-HPEiLOPostSetting -Connection $iLOConnection
-                            $PostWait = $PostWait + 1
-                            } While (( $Post.PostState -ne "FinishedPost" ) -and ( $Post.PostState -ne "InPostDiscoveryComplete" ))
 
-                            #Mount-HPEiLOVirtualMedia -Connection $iLOConnection  -Device DVD -ImageURL http://10.177.250.84/Nokia_Deep/deepfield-T3.iso
-                            #Set-HPEiLOServerPower -Connection $iLOConnection -Power Reset -Force
                     } else {
                         Write_Host "Connection to $($D_Host.hostname) failed."
                     }
-                    
-                    Write-Host "Configuring iLO IPv4 on $($SN)."
-                    Set-HPEiLOIPv4NetworkSetting -Connection $iLOConnection -InterfaceType Dedicated -DHCPv4Enabled No -DNSName $iLOHostName -DNSServer $dnsserver -DNSServerType $dnstype -DomainName $iLODomain -LinkSpeedMbps Automatic
-
+                Disconnect-HPEiLO -Connection $iLOConnection
+                Disconnect-HPESA -Connection $SAConnection
+                Disconnect-HPEBIOS -Connection $BIOSConnection
                 }
             }
         }
     }
 }
-
-Disconnect-HPEiLO -Connection $iLOConnection
-Disconnect-HPESA -Connection $SAConnection
-Disconnect-HPEBIOS -Connection $BIOSConnection
 
 Stop-Transcript
